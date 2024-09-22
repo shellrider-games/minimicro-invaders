@@ -1,7 +1,5 @@
 import "mathUtil"
-
 clear
-
 textColorBeforeStart = display(3).color
 
 SCALE = 4
@@ -23,7 +21,8 @@ smallInvaderSheet = file.loadImage("images/small_invader.png")
 smallInvaderFrames = [smallInvaderSheet.getImage(0,0,8,8), smallInvaderSheet.getImage(8,0,8,8)]
 
 explosionSheet = file.loadImage("images/invader_explosion.png")
-explosionFrames = [ explosionSheet.getImage(0,0,12,8),
+explosionFrames = [ 
+    explosionSheet.getImage(0,0,12,8),
     explosionSheet.getImage(12,0,12,8),
     explosionSheet.getImage(24,0,12,8),
     explosionSheet.getImage(36,0,12,8)]
