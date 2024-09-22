@@ -45,51 +45,30 @@ missile.deployed = false
 
 invaders = []
 
-for j in range(0,2)
+createInvaderRow = function(rowNumber, type)
     for i in range(0,11)
         noob = {}
         noob.sprite = new Sprite
-        noob.sprite.image = largeInvaderFrames[0]
+        noob.type = type
+        if type == INVADER_LARGE then noob.sprite.image = largeInvaderFrames[0]
+        if type == INVADER_MEDIUM then noob.sprite.image = mediumInvaderFrames[0]
+        if type == INVADER_SMALL then noob.sprite.image = smallInvaderFrames[0]
         noob.sprite.scale = SCALE
         noob.sprite.localBounds = new Bounds
         noob.sprite.localBounds.width = noob.sprite.image.width
         noob.sprite.localBounds.height = noob.sprite.image.height
         noob.sprite.x = LEFT_BORDER + i*SCALE*16
-        noob.sprite.y = ENEMY_SPAWN_HEIGHT + j*SCALE*12
-        noob.type = INVADER_LARGE
+        noob.sprite.y = ENEMY_SPAWN_HEIGHT + rowNumber*SCALE*12
         invaders.push noob
     end for
-end for
+end function
 
-for j in range(0,1)
-    for i in range(0,11)
-        noob = {}
-        noob.sprite = new Sprite
-        noob.sprite.image = mediumInvaderFrames[0]
-        noob.sprite.scale = SCALE
-        noob.sprite.localBounds = new Bounds
-        noob.sprite.localBounds.width = noob.sprite.image.width
-        noob.sprite.localBounds.height = noob.sprite.image.height
-        noob.sprite.x = LEFT_BORDER + i*SCALE*16
-        noob.sprite.y = ENEMY_SPAWN_HEIGHT + (j+3)*SCALE*12
-        noob.type = INVADER_MEDIUM
-        invaders.push noob
-    end for
-end for
-
-for i in range(0,11)
-    noob = {}
-    noob.sprite = new Sprite
-    noob.sprite.image = smallInvaderFrames[0]
-    noob.sprite.scale = SCALE
-    noob.sprite.localBounds = new Bounds
-    noob.sprite.localBounds.width = noob.sprite.image.width
-    noob.sprite.localBounds.height = noob.sprite.image.height
-    noob.sprite.x = LEFT_BORDER + i*SCALE*16
-    noob.sprite.y = ENEMY_SPAWN_HEIGHT + 5*SCALE*12
-    noob.type = INVADER_SMALL
-    invaders.push noob
-end for
+createInvaderRow 0, INVADER_LARGE
+createInvaderRow 1, INVADER_LARGE
+createInvaderRow 2, INVADER_LARGE
+createInvaderRow 3, INVADER_MEDIUM
+createInvaderRow 4, INVADER_MEDIUM
+createInvaderRow 5, INVADER_SMALL
 
 printScore = function(score)  
     display(3).clear
