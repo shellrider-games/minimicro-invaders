@@ -2,6 +2,8 @@ import "mathUtil"
 
 clear
 
+textColorBeforeStart = display(3).color
+
 SCALE = 4
 BOTTOM_OFFSET = 16
 LEFT_BORDER = 6* SCALE
@@ -89,11 +91,24 @@ for i in range(0,11)
     invaders.push noob
 end for
 
+printScore = function(score)  
+    display(3).clear
+    display(3).color = color.white
+    display(3).row = 25
+    display(3).column = 0
+    display(3).print "Score:"
+    display(3).row = 25
+    display(3).color = color.lime
+    display(3).column = 7
+    display(3).print score
+end function
+
 invaderSpeed = 10
 invaderDir = 1
 
 killsTillSpeedup = 16
 currentKillCounter = 0
+score = 0
 
 for invader in invaders
     display(4).sprites.push invader.sprite
@@ -148,6 +163,9 @@ while not key.pressed("escape") and not gameOver
             invaders.remove invaders.indexOf(toBeRemoved)
             display(4).sprites.remove display(4).sprites.indexOf(toBeRemoved.sprite)
             currentKillCounter = currentKillCounter + 1
+            if toBeRemoved.type == INVADER_LARGE then score = score + 10
+            if toBeRemoved.type == INVADER_MEDIUM then score = score + 20
+            if toBeRemoved.type == INVADER_SMALL then score = score + 30
         end if
         if missile.sprite.y > TOP_BORDER then missile.deployed = false
         if currentKillCounter >= killsTillSpeedup then
@@ -155,12 +173,13 @@ while not key.pressed("escape") and not gameOver
             killsTillSpeedup = ceil(killsTillSpeedup/2)
             invaderSpeed = invaderSpeed + 5
         end if
-
     else if key.pressed("space") and not spaceJustPressed then
         missile.sprite.x = player.sprite.x
         missile.sprite.y = player.sprite.y + 4*SCALE
         missile.deployed = true
     end if
+
+    printScore score
 
     if invaders.len <= 0 then
         print "YOU WON!"
@@ -183,4 +202,5 @@ while not key.pressed("escape") and not gameOver
 end while
 
 key.clear
+display(3).color = textColorBeforeStart
 clear
