@@ -22,6 +22,12 @@ mediumInvaderFrames = [mediumInvaderSheet.getImage(0,0,11,8),mediumInvaderSheet.
 smallInvaderSheet = file.loadImage("images/small_invader.png")
 smallInvaderFrames = [smallInvaderSheet.getImage(0,0,8,8), smallInvaderSheet.getImage(8,0,8,8)]
 
+explosionSheet = file.loadImage("images/invader_explosion.png")
+explosionFrames = [ explosionSheet.getImage(0,0,12,8),
+    explosionSheet.getImage(12,0,12,8),
+    explosionSheet.getImage(24,0,12,8),
+    explosionSheet.getImage(36,0,12,8)]
+
 player = {}
 player.sprite = new Sprite
 player.sprite.image = file.loadImage("images/player.png")
@@ -44,8 +50,9 @@ missile.speed = 1200
 missile.deployed = false
 
 invaders = []
+explosions = []
 
-createInvaderRow = function(rowNumber, type)
+createInvaderRow = function(rowNumber, type, color)
     for i in range(0,11)
         noob = {}
         noob.sprite = new Sprite
@@ -59,16 +66,30 @@ createInvaderRow = function(rowNumber, type)
         noob.sprite.localBounds.height = noob.sprite.image.height
         noob.sprite.x = LEFT_BORDER + i*SCALE*16
         noob.sprite.y = ENEMY_SPAWN_HEIGHT + rowNumber*SCALE*12
+        noob.sprite.tint = color
         invaders.push noob
     end for
 end function
 
-createInvaderRow 0, INVADER_LARGE
-createInvaderRow 1, INVADER_LARGE
-createInvaderRow 2, INVADER_LARGE
-createInvaderRow 3, INVADER_MEDIUM
-createInvaderRow 4, INVADER_MEDIUM
-createInvaderRow 5, INVADER_SMALL
+addExplosion = function(x,y)
+    noob = {}
+    noob.sprite = new Sprite
+    noob.sprite.scale = SCALE
+    noob.sprite.x = x
+    noob.sprite.y = y
+    noob.sprite.image = explosionFrames[0]
+    noob.elapsedTime = 0
+    noob.timeToLive = 0.2
+    explosions.push noob
+    display(4).sprites.push noob.sprite
+end function
+
+createInvaderRow 0, INVADER_LARGE, color.red
+createInvaderRow 1, INVADER_LARGE, color.orange
+createInvaderRow 2, INVADER_LARGE, color.yellow
+createInvaderRow 3, INVADER_MEDIUM, color.green
+createInvaderRow 4, INVADER_MEDIUM, color.aqua
+createInvaderRow 5, INVADER_SMALL, color.purple
 
 printScore = function(score)  
     display(3).clear
@@ -104,6 +125,7 @@ while not key.pressed("escape") and not gameOver
     delta = currentTimestamp - lastTimestamp
     lastTimestamp = currentTimestamp
     changeDirection = false
+    
     for invader in invaders
         if invader.type == INVADER_LARGE then
             invader.sprite.image = largeInvaderFrames[currentTimestamp * ANIMATION_SPEED % largeInvaderFrames.len]
@@ -119,10 +141,11 @@ while not key.pressed("escape") and not gameOver
             changeDirection = true
         end if
     end for
+
     if changeDirection then
         invaderDir = invaderDir * -1
         for invader in invaders
-            invader.sprite.y = invader.sprite.y - 12*SCALE
+            invader.sprite.y = invader.sprite.y - 12 * SCALE
         end for
     end if
 
@@ -145,6 +168,7 @@ while not key.pressed("escape") and not gameOver
             if toBeRemoved.type == INVADER_LARGE then score = score + 10
             if toBeRemoved.type == INVADER_MEDIUM then score = score + 20
             if toBeRemoved.type == INVADER_SMALL then score = score + 30
+            addExplosion toBeRemoved.sprite.x, toBeRemoved.sprite.y
         end if
         if missile.sprite.y > TOP_BORDER then missile.deployed = false
         if currentKillCounter >= killsTillSpeedup then
@@ -175,8 +199,22 @@ while not key.pressed("escape") and not gameOver
         end if
     end for
 
-    spaceJustPressed = key.pressed("space")
+    toBeRemoved = null
+    for explosion in explosions
+        explosion.elapsedTime = explosion.elapsedTime + delta
+        explosion.sprite.image = explosionFrames[mathUtil.clamp(floor(explosion.elapsedTime/(explosion.timeToLive/explosionFrames.len)),0,explosionFrames.len-1)]
+        if explosion.elapsedTime >= explosion.timeToLive then
+            toBeRemoved = explosion
+            break
+        end if
+    end for
 
+    if toBeRemoved then
+        explosions.remove explosions.indexOf(toBeRemoved)
+        display(4).sprites.remove display(4).sprites.indexOf(toBeRemoved.sprite)
+    end if
+
+    spaceJustPressed = key.pressed("space")
     yield
 end while
 
