@@ -20,6 +20,12 @@ mediumInvaderFrames = [mediumInvaderSheet.getImage(0,0,11,8),mediumInvaderSheet.
 smallInvaderSheet = file.loadImage("images/small_invader.png")
 smallInvaderFrames = [smallInvaderSheet.getImage(0,0,8,8), smallInvaderSheet.getImage(8,0,8,8)]
 
+gfx.color = color.lime
+gfx.fillRect 152, 64, 80, 20
+gfx.fillRect 344, 64, 80, 20
+gfx.fillRect 536, 64, 80, 20
+gfx.fillRect 728, 64, 80, 20
+
 explosionSheet = file.loadImage("images/invader_explosion.png")
 explosionFrames = [ 
     explosionSheet.getImage(0,0,12,8),
