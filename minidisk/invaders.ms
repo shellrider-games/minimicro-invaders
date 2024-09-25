@@ -20,11 +20,52 @@ mediumInvaderFrames = [mediumInvaderSheet.getImage(0,0,11,8),mediumInvaderSheet.
 smallInvaderSheet = file.loadImage("images/small_invader.png")
 smallInvaderFrames = [smallInvaderSheet.getImage(0,0,8,8), smallInvaderSheet.getImage(8,0,8,8)]
 
-gfx.color = color.lime
-gfx.fillRect 152, 64, 80, 20
-gfx.fillRect 344, 64, 80, 20
-gfx.fillRect 536, 64, 80, 20
-gfx.fillRect 728, 64, 80, 20
+
+display(2).mode = displayMode.tile
+tileDisplay = display(2)
+tileDisplay.tileSet = file.loadImage("images/barrier_tile_set.png")
+tileDisplay.tileSetTileSize = 8
+tileDisplay.cellSize = 4
+tileDisplay.extent = [240,160]
+tileDisplay.clear 0
+
+for col in range(0,239)
+    for row in range(0,159)
+        tileDisplay.setCellTint col,row, color.lime
+    end for
+end for
+
+spawnBarrier = function(col)
+    for row in range(7+8,19+8)
+        if row <= 16+8 then tileDisplay.setCell col, row, 1
+        if row <= 17+8 then tileDisplay.setCell col+1, row, 1
+        if row <= 18+8 then tileDisplay.setCell col+2, row, 1
+        if row <= 19+8 then tileDisplay.setCell col+3, row, 1
+        if row >= 11+8 then tileDisplay.setCell col+4, row, 1
+        if row >= 12+8 then tileDisplay.setCell col+5, row, 1
+        if row >= 13+8 then tileDisplay.setCell col+6, row, 1
+        if row >= 13+8 then tileDisplay.setCell col+7, row, 1
+        if row >= 13+8 then tileDisplay.setCell col+8, row, 1
+        if row >= 13+8 then tileDisplay.setCell col+9, row, 1
+        if row >= 13+8 then tileDisplay.setCell col+10, row, 1
+        if row >= 13+8 then tileDisplay.setCell col+11, row, 1
+        if row >= 13+8 then tileDisplay.setCell col+12, row, 1
+        if row >= 12+8 then tileDisplay.setCell col+13, row, 1
+        if row >= 11+8 then tileDisplay.setCell col+14, row, 1
+        if row <= 19+8 then tileDisplay.setCell col+15, row, 1
+        if row <= 18+8 then tileDisplay.setCell col+16, row, 1
+        if row <= 17+8 then tileDisplay.setCell col+17, row, 1
+        if row <= 16+8 then tileDisplay.setCell col+18, row, 1
+    end for
+end function
+
+spawnBarrier 18
+
+spawnBarrier 42*2
+
+spawnBarrier 66*2
+
+spawnBarrier 90*2
 
 explosionSheet = file.loadImage("images/invader_explosion.png")
 explosionFrames = [ 
@@ -51,7 +92,7 @@ missile.sprite.localBounds.width = missile.sprite.image.width
 missile.sprite.localBounds.height = missile.sprite.image.height
 missile.sprite.x = -1
 missile.sprite.y = TOP_BORDER
-missile.speed = 1200
+missile.speed = 700
 missile.deployed = false
 
 invaders = []
@@ -158,28 +199,59 @@ while not key.pressed("escape") and not gameOver
     
     if missile.deployed then
         missile.sprite.y = missile.sprite.y + missile.speed * delta
-        toBeRemoved = null
-        for invader in invaders
-            if invader.sprite.overlaps(missile.sprite) then
-                toBeRemoved = invader
-                break
-            end if
+        hitBarrier = false
+        missleCorners = missile.sprite.worldBounds.corners
+        left = missleCorners[0][0]
+        right = missleCorners[0][0]
+        top = missleCorners[0][1]
+        bottom = missleCorners[0][0]
+        for i in range(1,3)
+            if missleCorners[i][0] < left then left = missleCorners[i][0]
+            if missleCorners[i][0] > right then right = missleCorners[i][0]
+            if missleCorners[i][1] < bottom then bottom = missleCorners[i][1]
+            if missleCorners[i][1] > top then top = missleCorners[i][1]
         end for
-        if toBeRemoved then
+
+        for col in range(floor(left/4)-1,ceil(right/4)+1)
+            for row in range(floor(bottom/4)-1,ceil(top/4)+1)
+                if tileDisplay.cell(col, row) == 0 then continue
+                if missile.sprite.contains(col*4,row*4) then
+                    tileDisplay.setCell col, row, 0
+                    if rnd >= 0.5 then tileDisplay.setCell col-1, row, 0
+                    if rnd >= 0.5 then tileDisplay.setCell col+1, row, 0
+                    hitBarrier = true
+                end if
+            end for
+        end for
+        
+        if hitBarrier then
             missile.sprite.y = TOP_BORDER
-            invaders.remove invaders.indexOf(toBeRemoved)
-            display(4).sprites.remove display(4).sprites.indexOf(toBeRemoved.sprite)
-            currentKillCounter = currentKillCounter + 1
-            if toBeRemoved.type == INVADER_LARGE then score = score + 10
-            if toBeRemoved.type == INVADER_MEDIUM then score = score + 20
-            if toBeRemoved.type == INVADER_SMALL then score = score + 30
-            addExplosion toBeRemoved.sprite.x, toBeRemoved.sprite.y
-        end if
-        if missile.sprite.y > TOP_BORDER then missile.deployed = false
-        if currentKillCounter >= killsTillSpeedup then
-            currentKillCounter = 0
-            killsTillSpeedup = ceil(killsTillSpeedup/2)
-            invaderSpeed = invaderSpeed + 5
+            missile.deployed = false
+            tileDisplay.setCell barrierPosition[0], barrierPosition[1], 0
+        else
+            toBeRemoved = null
+            for invader in invaders
+                if invader.sprite.overlaps(missile.sprite) then
+                    toBeRemoved = invader
+                    break
+                end if
+            end for
+            if toBeRemoved then
+                missile.sprite.y = TOP_BORDER
+                invaders.remove invaders.indexOf(toBeRemoved)
+                display(4).sprites.remove display(4).sprites.indexOf(toBeRemoved.sprite)
+                currentKillCounter = currentKillCounter + 1
+                if toBeRemoved.type == INVADER_LARGE then score = score + 10
+                if toBeRemoved.type == INVADER_MEDIUM then score = score + 20
+                if toBeRemoved.type == INVADER_SMALL then score = score + 30
+                addExplosion toBeRemoved.sprite.x, toBeRemoved.sprite.y
+            end if
+            if missile.sprite.y > TOP_BORDER then missile.deployed = false
+            if currentKillCounter >= killsTillSpeedup then
+                currentKillCounter = 0
+                killsTillSpeedup = ceil(killsTillSpeedup/2)
+                invaderSpeed = invaderSpeed + 5
+            end if
         end if
     else if key.pressed("space") and not spaceJustPressed then
         missile.sprite.x = player.sprite.x
@@ -196,7 +268,7 @@ while not key.pressed("escape") and not gameOver
     end if
 
     for invader in invaders   
-        if invader.sprite.y <= BOTTOM_OFFSET + 12*SCALE then
+        if invader.sprite.y <= BOTTOM_OFFSET + 32*SCALE then
             print "YOU LOST!"
             gameOver = true
             wait 3
