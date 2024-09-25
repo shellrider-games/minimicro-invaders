@@ -130,11 +130,10 @@ addExplosion = function(x,y)
     display(4).sprites.push noob.sprite
 end function
 
-createInvaderRow 0, INVADER_LARGE, color.red
-createInvaderRow 1, INVADER_LARGE, color.orange
-createInvaderRow 2, INVADER_LARGE, color.yellow
-createInvaderRow 3, INVADER_MEDIUM, color.green
-createInvaderRow 4, INVADER_MEDIUM, color.aqua
+createInvaderRow 1, INVADER_LARGE, color.red
+createInvaderRow 2, INVADER_LARGE, color.orange
+createInvaderRow 3, INVADER_MEDIUM, color.yellow
+createInvaderRow 4, INVADER_MEDIUM, color.green
 createInvaderRow 5, INVADER_SMALL, color.purple
 
 printScore = function(score)  
