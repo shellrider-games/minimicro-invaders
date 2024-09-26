@@ -82,9 +82,26 @@ player.sprite = new Sprite
 player.sprite.image = file.loadImage("images/player.png")
 player.sprite.tint = color.lime
 player.sprite.scale = SCALE
+player.sprite.localBounds = new Bounds
+player.sprite.localBounds.width = player.sprite.image.width
+player.sprite.localBounds.height = player.sprite.image.height
 player.sprite.x = LEFT_BORDER
 player.sprite.y = 3*SCALE+BOTTOM_OFFSET
 player.speed = 400
+
+extraLive1 = new Sprite
+extraLive1.image = file.loadImage("images/player.png")
+extraLive1.tint = color.lime
+extraLive1.scale = SCALE
+extraLive1.x = RIGHT_BORDER-(extraLive1.image.width/2+2*SCALE)
+extraLive1.y = 640-18
+
+extraLive2 = new Sprite
+extraLive2.image = file.loadImage("images/player.png")
+extraLive2.tint = color.lime
+extraLive2.scale = SCALE
+extraLive2.x = RIGHT_BORDER-(extraLive1.image.width/2+(4+extraLive1.image.width)*SCALE)
+extraLive2.y = 640-18
 
 missile = {}
 missile.sprite = new Sprite
@@ -162,6 +179,10 @@ printScore = function(score)
     display(3).color = color.lime
     display(3).column = 7
     display(3).print score
+    display(3).row = 25
+    display(3).column =  53
+    display(3).color = color.white
+    display(3).print "Lives:"
 end function
 
 collideWithBarriers = function(missile)
@@ -197,12 +218,19 @@ resetEnemyMissile = function
     enemyMissile.shotDelay = 2 + rnd
 end function
 
+loseGame = function
+    print "YOU LOST!"
+    globals.gameOver = true
+    wait 3
+end function
+
 invaderSpeed = 10
 invaderDir = 1
 
 killsTillSpeedup = 16
 currentKillCounter = 0
 score = 0
+extraLives = 2
 
 for invader in invaders
     display(4).sprites.push invader.sprite
@@ -210,6 +238,8 @@ end for
 display(4).sprites.push player.sprite
 display(4).sprites.push missile.sprite
 display(4).sprites.push enemyMissile.sprite
+display(4).sprites.push extraLive1
+display(4).sprites.push extraLive2
 
 spaceJustPressed = false
 lastTimestamp = time
@@ -294,10 +324,16 @@ while not key.pressed("escape") and not gameOver
         missile.deployed = true
     end if
 
-    printScore score
+    
     if enemyMissile.deployed then
         enemyMissile.sprite.y = enemyMissile.sprite.y - enemyMissile.speed * delta
         if collideWithBarriers(enemyMissile) or enemyMissile.sprite.y < -2*SCALE then resetEnemyMissile
+        if player.sprite.overlaps(enemyMissile.sprite) then
+            player.sprite.x = LEFT_BORDER
+            extraLives = extraLives - 1
+            resetEnemyMissile
+            if extraLives < 0 then loseGame
+        end if
     else
         enemyMissile.shotDelay = enemyMissile.shotDelay - delta
         if enemyMissile.shotDelay <= 0 then
@@ -308,12 +344,7 @@ while not key.pressed("escape") and not gameOver
         end if
     end if
 
-
-    if invaders.len <= 0 then
-        print "YOU WON!"
-        gameOver = true
-        wait 3
-    end if
+    if invaders.len <= 0 then loseGame
 
     for invader in invaders   
         if invader.sprite.y <= BOTTOM_OFFSET + 32*SCALE then
@@ -341,6 +372,11 @@ while not key.pressed("escape") and not gameOver
         explosions.remove explosions.indexOf(toBeRemoved)
         display(4).sprites.remove display(4).sprites.indexOf(toBeRemoved.sprite)
     end if
+
+    if extraLives >= 2 then extraLive2.tint = color.lime else extraLive2.tint = color.gray
+    if extraLives >= 1 then extraLive1.tint = color.lime else extraLive1.tint = color.gray
+
+    printScore score
 
     spaceJustPressed = key.pressed("space")
     yield
