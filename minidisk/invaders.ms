@@ -14,11 +14,17 @@ INVADER_MEDIUM = 2
 INVADER_SMALL = 3
 
 largeInvaderSheet = file.loadImage("images/large_invader.png")
-largeInvaderFrames = [largeInvaderSheet.getImage(0,0,12,8),largeInvaderSheet.getImage(12,0,12,8)]
+largeInvaderFrames = [
+    largeInvaderSheet.getImage(0,0,12,8),
+    largeInvaderSheet.getImage(12,0,12,8)]
 mediumInvaderSheet = file.loadImage("images/medium_invader.png")
-mediumInvaderFrames = [mediumInvaderSheet.getImage(0,0,11,8),mediumInvaderSheet.getImage(11,0,11,8)]
+mediumInvaderFrames = [
+    mediumInvaderSheet.getImage(0,0,11,8),
+    mediumInvaderSheet.getImage(11,0,11,8)]
 smallInvaderSheet = file.loadImage("images/small_invader.png")
-smallInvaderFrames = [smallInvaderSheet.getImage(0,0,8,8), smallInvaderSheet.getImage(8,0,8,8)]
+smallInvaderFrames = [
+    smallInvaderSheet.getImage(0,0,8,8),
+    smallInvaderSheet.getImage(8,0,8,8)]
 
 
 display(2).mode = displayMode.tile
@@ -217,13 +223,19 @@ while not key.pressed("escape") and not gameOver
     
     for invader in invaders
         if invader.type == INVADER_LARGE then
-            invader.sprite.image = largeInvaderFrames[currentTimestamp * ANIMATION_SPEED % largeInvaderFrames.len]
+            invader.sprite.image = largeInvaderFrames[
+                currentTimestamp * ANIMATION_SPEED % largeInvaderFrames.len]
         else if invader.type == INVADER_MEDIUM then
-            invader.sprite.image = mediumInvaderFrames[currentTimestamp * ANIMATION_SPEED % mediumInvaderFrames.len]
+            invader.sprite.image = mediumInvaderFrames[
+                currentTimestamp * ANIMATION_SPEED % mediumInvaderFrames.len]
         else if invader.type == INVADER_SMALL then
-            invader.sprite.image = smallInvaderFrames[currentTimestamp * ANIMATION_SPEED % smallInvaderFrames.len]
+            invader.sprite.image = smallInvaderFrames[
+                currentTimestamp * ANIMATION_SPEED % smallInvaderFrames.len]
         end if
-        invader.sprite.x = mathUtil.clamp(invader.sprite.x + invaderDir*invaderSpeed*delta, LEFT_BORDER, RIGHT_BORDER)
+        invader.sprite.x = mathUtil.clamp(
+            invader.sprite.x + invaderDir*invaderSpeed*delta,
+            LEFT_BORDER,
+            RIGHT_BORDER)
         if invaderDir > 0 and invader.sprite.x >= RIGHT_BORDER then
             changeDirection = true
         else if invaderDir < 0 and invader.sprite.x <= LEFT_BORDER then
@@ -238,7 +250,10 @@ while not key.pressed("escape") and not gameOver
         end for
     end if
 
-    player.sprite.x = mathUtil.clamp(player.sprite.x + key.axis("Horizontal") * player.speed * delta,LEFT_BORDER,RIGHT_BORDER)
+    player.sprite.x = mathUtil.clamp(
+        player.sprite.x + key.axis("Horizontal") * player.speed * delta,
+        LEFT_BORDER,
+        RIGHT_BORDER)
     
     if missile.deployed then
         missile.sprite.y = missile.sprite.y + missile.speed * delta
@@ -258,7 +273,8 @@ while not key.pressed("escape") and not gameOver
             if toBeRemoved then
                 missile.sprite.y = TOP_BORDER
                 invaders.remove invaders.indexOf(toBeRemoved)
-                display(4).sprites.remove display(4).sprites.indexOf(toBeRemoved.sprite)
+                display(4).sprites.remove(
+                    display(4).sprites.indexOf(toBeRemoved.sprite))
                 currentKillCounter = currentKillCounter + 1
                 if toBeRemoved.type == INVADER_LARGE then score = score + 10
                 if toBeRemoved.type == INVADER_MEDIUM then score = score + 20
@@ -281,7 +297,7 @@ while not key.pressed("escape") and not gameOver
     printScore score
     if enemyMissile.deployed then
         enemyMissile.sprite.y = enemyMissile.sprite.y - enemyMissile.speed * delta
-        if collideWithBarriers(enemyMissile) or enemyMissile.sprite.y < -2*SCALE  then resetEnemyMissile
+        if collideWithBarriers(enemyMissile) or enemyMissile.sprite.y < -2*SCALE then resetEnemyMissile
     else
         enemyMissile.shotDelay = enemyMissile.shotDelay - delta
         if enemyMissile.shotDelay <= 0 then
@@ -311,7 +327,10 @@ while not key.pressed("escape") and not gameOver
     toBeRemoved = null
     for explosion in explosions
         explosion.elapsedTime = explosion.elapsedTime + delta
-        explosion.sprite.image = explosionFrames[mathUtil.clamp(floor(explosion.elapsedTime/(explosion.timeToLive/explosionFrames.len)),0,explosionFrames.len-1)]
+        explosion.sprite.image = explosionFrames[mathUtil.clamp(
+            floor(explosion.elapsedTime/(explosion.timeToLive/explosionFrames.len)),
+            0,
+            explosionFrames.len-1)]
         if explosion.elapsedTime >= explosion.timeToLive then
             toBeRemoved = explosion
             break
