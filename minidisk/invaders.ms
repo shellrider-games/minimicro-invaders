@@ -36,36 +36,33 @@ for col in range(0,239)
 end for
 
 spawnBarrier = function(col)
-    for row in range(7+8,19+8)
-        if row <= 16+8 then tileDisplay.setCell col, row, 1
-        if row <= 17+8 then tileDisplay.setCell col+1, row, 1
-        if row <= 18+8 then tileDisplay.setCell col+2, row, 1
-        if row <= 19+8 then tileDisplay.setCell col+3, row, 1
-        if row >= 11+8 then tileDisplay.setCell col+4, row, 1
-        if row >= 12+8 then tileDisplay.setCell col+5, row, 1
-        if row >= 13+8 then tileDisplay.setCell col+6, row, 1
-        if row >= 13+8 then tileDisplay.setCell col+7, row, 1
-        if row >= 13+8 then tileDisplay.setCell col+8, row, 1
-        if row >= 13+8 then tileDisplay.setCell col+9, row, 1
-        if row >= 13+8 then tileDisplay.setCell col+10, row, 1
-        if row >= 13+8 then tileDisplay.setCell col+11, row, 1
-        if row >= 13+8 then tileDisplay.setCell col+12, row, 1
-        if row >= 12+8 then tileDisplay.setCell col+13, row, 1
-        if row >= 11+8 then tileDisplay.setCell col+14, row, 1
-        if row <= 19+8 then tileDisplay.setCell col+15, row, 1
-        if row <= 18+8 then tileDisplay.setCell col+16, row, 1
-        if row <= 17+8 then tileDisplay.setCell col+17, row, 1
-        if row <= 16+8 then tileDisplay.setCell col+18, row, 1
+    for row in range(15,27)
+        if row <= 24 then tileDisplay.setCell col, row, 1
+        if row <= 25 then tileDisplay.setCell col+1, row, 1
+        if row <= 26 then tileDisplay.setCell col+2, row, 1
+        if row <= 27 then tileDisplay.setCell col+3, row, 1
+        if row >= 19 then tileDisplay.setCell col+4, row, 1
+        if row >= 20 then tileDisplay.setCell col+5, row, 1
+        if row >= 21 then tileDisplay.setCell col+6, row, 1
+        if row >= 21 then tileDisplay.setCell col+7, row, 1
+        if row >= 21 then tileDisplay.setCell col+8, row, 1
+        if row >= 21 then tileDisplay.setCell col+9, row, 1
+        if row >= 21 then tileDisplay.setCell col+10, row, 1
+        if row >= 21 then tileDisplay.setCell col+11, row, 1
+        if row >= 21 then tileDisplay.setCell col+12, row, 1
+        if row >= 20 then tileDisplay.setCell col+13, row, 1
+        if row >= 19 then tileDisplay.setCell col+14, row, 1
+        if row <= 27 then tileDisplay.setCell col+15, row, 1
+        if row <= 26 then tileDisplay.setCell col+16, row, 1
+        if row <= 25 then tileDisplay.setCell col+17, row, 1
+        if row <= 24 then tileDisplay.setCell col+18, row, 1
     end for
 end function
 
 spawnBarrier 18
-
-spawnBarrier 42*2
-
-spawnBarrier 66*2
-
-spawnBarrier 90*2
+spawnBarrier 84
+spawnBarrier 132
+spawnBarrier 180
 
 explosionSheet = file.loadImage("images/invader_explosion.png")
 explosionFrames = [ 
