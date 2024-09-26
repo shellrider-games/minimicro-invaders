@@ -65,10 +65,10 @@ spawnBarrier = function(col)
     end for
 end function
 
-spawnBarrier 18
-spawnBarrier 84
-spawnBarrier 132
-spawnBarrier 180
+spawnBarrier 38
+spawnBarrier 86
+spawnBarrier 134
+spawnBarrier 182
 
 explosionSheet = file.loadImage("images/invader_explosion.png")
 explosionFrames = [ 
@@ -372,12 +372,9 @@ while not key.pressed("escape") and not gameOver
         explosions.remove explosions.indexOf(toBeRemoved)
         display(4).sprites.remove display(4).sprites.indexOf(toBeRemoved.sprite)
     end if
-
     if extraLives >= 2 then extraLive2.tint = color.lime else extraLive2.tint = color.gray
     if extraLives >= 1 then extraLive1.tint = color.lime else extraLive1.tint = color.gray
-
     printScore score
-
     spaceJustPressed = key.pressed("space")
     yield
 end while
