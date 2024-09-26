@@ -163,11 +163,20 @@ addExplosion = function(x,y)
     display(4).sprites.push noob.sprite
 end function
 
-createInvaderRow 1, INVADER_LARGE, color.red
-createInvaderRow 2, INVADER_LARGE, color.orange
-createInvaderRow 3, INVADER_MEDIUM, color.yellow
-createInvaderRow 4, INVADER_MEDIUM, color.green
-createInvaderRow 5, INVADER_SMALL, color.purple
+startWave = function
+    createInvaderRow 1, INVADER_LARGE, color.red
+    createInvaderRow 2, INVADER_LARGE, color.orange
+    createInvaderRow 3, INVADER_MEDIUM, color.yellow
+    createInvaderRow 4, INVADER_MEDIUM, color.green
+    createInvaderRow 5, INVADER_SMALL, color.purple
+    globals.invaderSpeed = 10 + 5*waves
+    globals.killsTillSpeedup = 16
+    globals.invaderDir = 1
+    for invader in invaders
+        display(4).sprites.push invader.sprite
+    end for
+end function
+
 
 printScore = function(score)  
     display(3).clear
@@ -179,6 +188,14 @@ printScore = function(score)
     display(3).color = color.lime
     display(3).column = 7
     display(3).print score
+    display(3).row = 25
+    display(3).column = 29
+    display(3).color = color.white
+    display(3).print "Wave:"
+    display(3).row = 25
+    display(3).color = color.lime
+    display(3).column = 35
+    display(3).print waves+1
     display(3).row = 25
     display(3).column =  53
     display(3).color = color.white
@@ -219,22 +236,31 @@ resetEnemyMissile = function
 end function
 
 loseGame = function
-    print "YOU LOST!"
+    clear
+    display(3).color = color.white
+    display(3).row = 13
+    display(3).column = 29
+    print "GAME OVER!"
+    display(3).row = 11
+    display(3).column = 29
+    print "SCORE: "
+    display(3).row = 11
+    display(3).column = 36
+    display(3).color = color.lime
+    print score
     globals.gameOver = true
     wait 3
 end function
 
 invaderSpeed = 10
 invaderDir = 1
-
 killsTillSpeedup = 16
 currentKillCounter = 0
 score = 0
 extraLives = 2
+waves = 0
+startWave
 
-for invader in invaders
-    display(4).sprites.push invader.sprite
-end for
 display(4).sprites.push player.sprite
 display(4).sprites.push missile.sprite
 display(4).sprites.push enemyMissile.sprite
@@ -344,14 +370,14 @@ while not key.pressed("escape") and not gameOver
         end if
     end if
 
-    if invaders.len <= 0 then loseGame
+    if invaders.len <= 0 then
+        waves = waves + 1
+        startWave
+    end if
 
     for invader in invaders   
         if invader.sprite.y <= BOTTOM_OFFSET + 32*SCALE then
-            print "YOU LOST!"
-            gameOver = true
-            wait 3
-            break
+            loseGame
         end if
     end for
 
