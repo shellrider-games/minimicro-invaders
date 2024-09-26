@@ -92,6 +92,19 @@ missile.sprite.y = TOP_BORDER
 missile.speed = 700
 missile.deployed = false
 
+enemyMissile = {}
+enemyMissile.sprite = new Sprite
+enemyMissile.sprite.image = file.loadImage("images/player_shot.png")
+enemyMissile.sprite.scale = SCALE
+enemyMissile.sprite.localBounds = new Bounds
+enemyMissile.sprite.localBounds.width = enemyMissile.sprite.image.width
+enemyMissile.sprite.localBounds.height = enemyMissile.sprite.image.height
+enemyMissile.sprite.x = -1
+enemyMissile.sprite.y = TOP_BORDER
+enemyMissile.speed = 400
+enemyMissile.deployed = false
+enemyMissile.shotDelay = 2 + rnd
+
 invaders = []
 explosions = []
 
@@ -145,6 +158,39 @@ printScore = function(score)
     display(3).print score
 end function
 
+collideWithBarriers = function(missile)
+    missleCorners = missile.sprite.worldBounds.corners
+    left = missleCorners[0][0]
+    right = missleCorners[0][0]
+    top = missleCorners[0][1]
+    bottom = missleCorners[0][0]
+    for i in range(1,3)
+        if missleCorners[i][0] < left then left = missleCorners[i][0]
+        if missleCorners[i][0] > right then right = missleCorners[i][0]
+        if missleCorners[i][1] < bottom then bottom = missleCorners[i][1]
+        if missleCorners[i][1] > top then top = missleCorners[i][1]
+    end for
+
+    for col in range(floor((left)/4)-1,ceil((right)/4))
+        for row in range(floor((bottom)/4)-1,ceil((top)/4)+1)
+            if tileDisplay.cell(col, row) == 0 then continue
+            if missile.sprite.contains(col*4,row*4) then
+                tileDisplay.setCell col, row, 0
+                if rnd >= 0.5 then tileDisplay.setCell col-1, row, 0
+                if rnd >= 0.5 then tileDisplay.setCell col+1, row, 0
+                return true
+            end if
+        end for
+    end for
+    return false
+end function
+
+resetEnemyMissile = function
+    enemyMissile.sprite.y = TOP_BORDER
+    enemyMissile.deployed = false
+    enemyMissile.shotDelay = 2 + rnd
+end function
+
 invaderSpeed = 10
 invaderDir = 1
 
@@ -157,6 +203,7 @@ for invader in invaders
 end for
 display(4).sprites.push player.sprite
 display(4).sprites.push missile.sprite
+display(4).sprites.push enemyMissile.sprite
 
 spaceJustPressed = false
 lastTimestamp = time
@@ -195,35 +242,11 @@ while not key.pressed("escape") and not gameOver
     
     if missile.deployed then
         missile.sprite.y = missile.sprite.y + missile.speed * delta
-        hitBarrier = false
-        missleCorners = missile.sprite.worldBounds.corners
-        left = missleCorners[0][0]
-        right = missleCorners[0][0]
-        top = missleCorners[0][1]
-        bottom = missleCorners[0][0]
-        for i in range(1,3)
-            if missleCorners[i][0] < left then left = missleCorners[i][0]
-            if missleCorners[i][0] > right then right = missleCorners[i][0]
-            if missleCorners[i][1] < bottom then bottom = missleCorners[i][1]
-            if missleCorners[i][1] > top then top = missleCorners[i][1]
-        end for
+        hitBarrier = collideWithBarriers(missile)
 
-        for col in range(floor(left/4)-1,ceil(right/4)+1)
-            for row in range(floor(bottom/4)-1,ceil(top/4)+1)
-                if tileDisplay.cell(col, row) == 0 then continue
-                if missile.sprite.contains(col*4,row*4) then
-                    tileDisplay.setCell col, row, 0
-                    if rnd >= 0.5 then tileDisplay.setCell col-1, row, 0
-                    if rnd >= 0.5 then tileDisplay.setCell col+1, row, 0
-                    hitBarrier = true
-                end if
-            end for
-        end for
-        
         if hitBarrier then
             missile.sprite.y = TOP_BORDER
             missile.deployed = false
-            tileDisplay.setCell barrierPosition[0], barrierPosition[1], 0
         else
             toBeRemoved = null
             for invader in invaders
@@ -256,6 +279,19 @@ while not key.pressed("escape") and not gameOver
     end if
 
     printScore score
+    if enemyMissile.deployed then
+        enemyMissile.sprite.y = enemyMissile.sprite.y - enemyMissile.speed * delta
+        if collideWithBarriers(enemyMissile) or enemyMissile.sprite.y < -2*SCALE  then resetEnemyMissile
+    else
+        enemyMissile.shotDelay = enemyMissile.shotDelay - delta
+        if enemyMissile.shotDelay <= 0 then
+            shooter = invaders[floor(rnd*invaders.len)]
+            enemyMissile.sprite.x = shooter.sprite.x
+            enemyMissile.sprite.y = shooter.sprite.y
+            enemyMissile.deployed = true
+        end if
+    end if
+
 
     if invaders.len <= 0 then
         print "YOU WON!"
