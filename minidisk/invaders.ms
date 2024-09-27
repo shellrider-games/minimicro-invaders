@@ -16,6 +16,9 @@ INVADER_SMALL = 3
 pew = new Sound
 pew.init 0.2, [5800,4800,200], [1,0.8,0]
 
+invaderPew = new Sound
+invaderPew.init 0.2, [5400,4600,200], [1,0.8,0]
+
 hitSnd = new Sound
 hitSnd.init 0.25, [50,20], [1,0], Sound.noiseWave
 
@@ -178,8 +181,9 @@ startWave = function
     createInvaderRow 3, INVADER_MEDIUM, color.yellow
     createInvaderRow 4, INVADER_MEDIUM, color.green
     createInvaderRow 5, INVADER_SMALL, color.purple
-    globals.invaderSpeed = 10 + 5*waves
-    globals.killsTillSpeedup = 16
+    globals.invaderSpeed = 10 + 10*globals.waves
+    globals.killsTillSpeedup = 8
+    globals.currentKillCounter = 0
     globals.invaderDir = 1
     for invader in invaders
         display(4).sprites.push invader.sprite
@@ -259,12 +263,12 @@ loseGame = function
     display(3).color = color.lime
     print score
     globals.gameOver = true
-    wait 3
+    wait 2
 end function
 
 invaderSpeed = 10
 invaderDir = 1
-killsTillSpeedup = 16
+killsTillSpeedup = 8
 currentKillCounter = 0
 score = 0
 extraLives = 2
@@ -368,6 +372,7 @@ while not key.pressed("escape") and not gameOver
         if collideWithBarriers(enemyMissile) or enemyMissile.sprite.y < -2*SCALE then resetEnemyMissile
         if player.sprite.overlaps(enemyMissile.sprite) then
             hitSnd.play
+            addExplosion player.sprite.x, player.sprite.y
             player.sprite.x = LEFT_BORDER
             extraLives = extraLives - 1
             resetEnemyMissile
@@ -379,6 +384,7 @@ while not key.pressed("escape") and not gameOver
             shooter = invaders[floor(rnd*invaders.len)]
             enemyMissile.sprite.x = shooter.sprite.x
             enemyMissile.sprite.y = shooter.sprite.y
+            invaderPew.play
             enemyMissile.deployed = true
         end if
     end if
