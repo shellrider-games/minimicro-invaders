@@ -13,6 +13,15 @@ INVADER_LARGE = 1
 INVADER_MEDIUM = 2
 INVADER_SMALL = 3
 
+pew = new Sound
+pew.init 0.2, [5800,4800,200], [1,0.8,0]
+
+hitSnd = new Sound
+hitSnd.init 0.25, [50,20], [1,0], Sound.noiseWave
+
+wallHitSnd = new Sound
+wallHitSnd.init 0.25, [70,40], [0.6,0], Sound.noiseWave
+
 largeInvaderSheet = file.loadImage("images/large_invader.png")
 largeInvaderFrames = [
     largeInvaderSheet.getImage(0,0,12,8),
@@ -219,6 +228,7 @@ collideWithBarriers = function(missile)
         for row in range(floor((bottom)/4)-1,ceil((top)/4)+1)
             if tileDisplay.cell(col, row) == 0 then continue
             if missile.sprite.contains(col*4,row*4) then
+                wallHitSnd.play
                 tileDisplay.setCell col, row, 0
                 if rnd >= 0.5 then tileDisplay.setCell col-1, row, 0
                 if rnd >= 0.5 then tileDisplay.setCell col+1, row, 0
@@ -327,6 +337,7 @@ while not key.pressed("escape") and not gameOver
                 end if
             end for
             if toBeRemoved then
+                hitSnd.play
                 missile.sprite.y = TOP_BORDER
                 invaders.remove invaders.indexOf(toBeRemoved)
                 display(4).sprites.remove(
@@ -348,6 +359,7 @@ while not key.pressed("escape") and not gameOver
         missile.sprite.x = player.sprite.x
         missile.sprite.y = player.sprite.y + 4*SCALE
         missile.deployed = true
+        pew.play
     end if
 
     
@@ -355,6 +367,7 @@ while not key.pressed("escape") and not gameOver
         enemyMissile.sprite.y = enemyMissile.sprite.y - enemyMissile.speed * delta
         if collideWithBarriers(enemyMissile) or enemyMissile.sprite.y < -2*SCALE then resetEnemyMissile
         if player.sprite.overlaps(enemyMissile.sprite) then
+            hitSnd.play
             player.sprite.x = LEFT_BORDER
             extraLives = extraLives - 1
             resetEnemyMissile
