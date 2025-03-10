@@ -45,13 +45,6 @@ tileDisplay.tileSet = file.loadImage("images/barrier_tile_set.png")
 tileDisplay.tileSetTileSize = 8
 tileDisplay.cellSize = 4
 tileDisplay.extent = [240,160]
-tileDisplay.clear 0
-
-for col in range(0,239)
-    for row in range(0,159)
-        tileDisplay.setCellTint col,row, color.lime
-    end for
-end for
 
 spawnBarrier = function(col)
     for row in range(15,27)
@@ -77,10 +70,6 @@ spawnBarrier = function(col)
     end for
 end function
 
-spawnBarrier 38
-spawnBarrier 86
-spawnBarrier 134
-spawnBarrier 182
 
 explosionSheet = file.loadImage("images/invader_explosion.png")
 explosionFrames = [ 
@@ -97,8 +86,6 @@ player.sprite.scale = SCALE
 player.sprite.localBounds = new Bounds
 player.sprite.localBounds.width = player.sprite.image.width
 player.sprite.localBounds.height = player.sprite.image.height
-player.sprite.x = LEFT_BORDER
-player.sprite.y = 3*SCALE+BOTTOM_OFFSET
 player.speed = 400
 
 extraLive1 = new Sprite
@@ -122,10 +109,8 @@ missile.sprite.scale = SCALE
 missile.sprite.localBounds = new Bounds
 missile.sprite.localBounds.width = missile.sprite.image.width
 missile.sprite.localBounds.height = missile.sprite.image.height
-missile.sprite.x = -1
-missile.sprite.y = TOP_BORDER
 missile.speed = 700
-missile.deployed = false
+
 
 enemyMissile = {}
 enemyMissile.sprite = new Sprite
@@ -134,14 +119,9 @@ enemyMissile.sprite.scale = SCALE
 enemyMissile.sprite.localBounds = new Bounds
 enemyMissile.sprite.localBounds.width = enemyMissile.sprite.image.width
 enemyMissile.sprite.localBounds.height = enemyMissile.sprite.image.height
-enemyMissile.sprite.x = -1
-enemyMissile.sprite.y = TOP_BORDER
 enemyMissile.speed = 400
-enemyMissile.deployed = false
-enemyMissile.shotDelay = 2 + rnd
 
-invaders = []
-explosions = []
+
 
 createInvaderRow = function(rowNumber, type, color)
     for i in range(0,11)
@@ -249,178 +229,222 @@ resetEnemyMissile = function
     enemyMissile.shotDelay = 2 + rnd
 end function
 
-loseGame = function
-    clear
+showGameOverScreen = function
+    display(4).clear
+    display(3).clear
+    display(2).clear 0
     display(3).color = color.white
-    display(3).row = 13
+    display(3).row = 15
     display(3).column = 29
     print "GAME OVER!"
-    display(3).row = 11
+    display(3).row = 13
     display(3).column = 29
     print "SCORE: "
-    display(3).row = 11
+    display(3).row = 13
     display(3).column = 36
     display(3).color = color.lime
     print score
-    globals.gameOver = true
-    wait 2
+    display(3).row = 11
+    display(3).column = 21
+    display(3).color = color.white
+    print "PRESS 'R' TO RESTART GAME"
 end function
 
-invaderSpeed = 10
-invaderDir = 1
-killsTillSpeedup = 8
-currentKillCounter = 0
-score = 0
-extraLives = 2
-waves = 0
-startWave
+setupGame = function
+    globals.invaders = []
+    globals.explosions = []
 
-display(4).sprites.push player.sprite
-display(4).sprites.push missile.sprite
-display(4).sprites.push enemyMissile.sprite
-display(4).sprites.push extraLive1
-display(4).sprites.push extraLive2
+    globals.invaderSpeed = 10
+    globals.invaderDir = 1
+    globals.killsTillSpeedup = 8
+    globals.currentKillCounter = 0
+    globals.score = 0
+    globals.extraLives = 2
+    globals.waves = 0
+    startWave
+    globals.spaceJustPressed = false
+    globals.lastTimestamp = time
+    globals.gameOver = false
+    
+    player.sprite.x = LEFT_BORDER
+    player.sprite.y = 3*SCALE+BOTTOM_OFFSET
+    missile.sprite.x = -1
+    missile.sprite.y = TOP_BORDER
+    enemyMissile.sprite.x = -1
+    enemyMissile.sprite.y = TOP_BORDER
 
-spaceJustPressed = false
-lastTimestamp = time
-gameOver = false
+    tileDisplay.clear 0
+    for col in range(0,239)
+        for row in range(0,159)
+            tileDisplay.setCellTint col,row, color.lime
+        end for
+    end for
 
-while not key.pressed("escape") and not gameOver
+    spawnBarrier 38
+    spawnBarrier 86
+    spawnBarrier 134
+    spawnBarrier 182
+
+    enemyMissile.deployed = false
+    enemyMissile.shotDelay = 2 + rnd
+
+    missile.deployed = false
+
+    display(4).sprites.push player.sprite
+    display(4).sprites.push missile.sprite
+    display(4).sprites.push enemyMissile.sprite
+    display(4).sprites.push extraLive1
+    display(4).sprites.push extraLive2
+end function
+
+setupGame
+
+while not key.pressed("escape")
     currentTimestamp = time
     delta = currentTimestamp - lastTimestamp
     lastTimestamp = currentTimestamp
-    changeDirection = false
+    if gameOver then
+        showGameOverScreen
+        if key.pressed("r") then setupGame
+    else
+        changeDirection = false
+
+        for invader in invaders
+            if invader.type == INVADER_LARGE then
+                invader.sprite.image = largeInvaderFrames[
+                    currentTimestamp * ANIMATION_SPEED % largeInvaderFrames.len]
+            else if invader.type == INVADER_MEDIUM then
+                invader.sprite.image = mediumInvaderFrames[
+                    currentTimestamp * ANIMATION_SPEED % mediumInvaderFrames.len]
+            else if invader.type == INVADER_SMALL then
+                invader.sprite.image = smallInvaderFrames[
+                    currentTimestamp * ANIMATION_SPEED % smallInvaderFrames.len]
+            end if
+            invader.sprite.x = mathUtil.clamp(
+                invader.sprite.x + invaderDir*invaderSpeed*delta,
+                LEFT_BORDER,
+                RIGHT_BORDER)
+            if invaderDir > 0 and invader.sprite.x >= RIGHT_BORDER then
+                changeDirection = true
+            else if invaderDir < 0 and invader.sprite.x <= LEFT_BORDER then
+                changeDirection = true
+            end if
+        end for
     
-    for invader in invaders
-        if invader.type == INVADER_LARGE then
-            invader.sprite.image = largeInvaderFrames[
-                currentTimestamp * ANIMATION_SPEED % largeInvaderFrames.len]
-        else if invader.type == INVADER_MEDIUM then
-            invader.sprite.image = mediumInvaderFrames[
-                currentTimestamp * ANIMATION_SPEED % mediumInvaderFrames.len]
-        else if invader.type == INVADER_SMALL then
-            invader.sprite.image = smallInvaderFrames[
-                currentTimestamp * ANIMATION_SPEED % smallInvaderFrames.len]
+        if changeDirection then
+            invaderDir = invaderDir * -1
+            for invader in invaders
+                invader.sprite.y = invader.sprite.y - 12 * SCALE
+            end for
         end if
-        invader.sprite.x = mathUtil.clamp(
-            invader.sprite.x + invaderDir*invaderSpeed*delta,
+    
+        player.sprite.x = mathUtil.clamp(
+            player.sprite.x + key.axis("Horizontal") * player.speed * delta,
             LEFT_BORDER,
             RIGHT_BORDER)
-        if invaderDir > 0 and invader.sprite.x >= RIGHT_BORDER then
-            changeDirection = true
-        else if invaderDir < 0 and invader.sprite.x <= LEFT_BORDER then
-            changeDirection = true
-        end if
-    end for
-
-    if changeDirection then
-        invaderDir = invaderDir * -1
-        for invader in invaders
-            invader.sprite.y = invader.sprite.y - 12 * SCALE
-        end for
-    end if
-
-    player.sprite.x = mathUtil.clamp(
-        player.sprite.x + key.axis("Horizontal") * player.speed * delta,
-        LEFT_BORDER,
-        RIGHT_BORDER)
+        
+        if missile.deployed then
+            missile.sprite.y = missile.sprite.y + missile.speed * delta
+            hitBarrier = collideWithBarriers(missile)
     
-    if missile.deployed then
-        missile.sprite.y = missile.sprite.y + missile.speed * delta
-        hitBarrier = collideWithBarriers(missile)
-
-        if hitBarrier then
-            missile.sprite.y = TOP_BORDER
-            missile.deployed = false
-        else
-            toBeRemoved = null
-            for invader in invaders
-                if invader.sprite.overlaps(missile.sprite) then
-                    toBeRemoved = invader
-                    break
-                end if
-            end for
-            if toBeRemoved then
-                hitSnd.play
+            if hitBarrier then
                 missile.sprite.y = TOP_BORDER
-                invaders.remove invaders.indexOf(toBeRemoved)
-                display(4).sprites.remove(
-                    display(4).sprites.indexOf(toBeRemoved.sprite))
-                currentKillCounter = currentKillCounter + 1
-                if toBeRemoved.type == INVADER_LARGE then score = score + 10
-                if toBeRemoved.type == INVADER_MEDIUM then score = score + 20
-                if toBeRemoved.type == INVADER_SMALL then score = score + 30
-                addExplosion toBeRemoved.sprite.x, toBeRemoved.sprite.y
+                missile.deployed = false
+            else
+                toBeRemoved = null
+                for invader in invaders
+                    if invader.sprite.overlaps(missile.sprite) then
+                        toBeRemoved = invader
+                        break
+                    end if
+                end for
+                if toBeRemoved then
+                    hitSnd.play
+                    missile.sprite.y = TOP_BORDER
+                    invaders.remove invaders.indexOf(toBeRemoved)
+                    display(4).sprites.remove(
+                        display(4).sprites.indexOf(toBeRemoved.sprite))
+                    currentKillCounter = currentKillCounter + 1
+                    if toBeRemoved.type == INVADER_LARGE then score = score + 10
+                    if toBeRemoved.type == INVADER_MEDIUM then score = score + 20
+                    if toBeRemoved.type == INVADER_SMALL then score = score + 30
+                    addExplosion toBeRemoved.sprite.x, toBeRemoved.sprite.y
+                end if
+                if missile.sprite.y > TOP_BORDER then missile.deployed = false
+                if currentKillCounter >= killsTillSpeedup then
+                    currentKillCounter = 0
+                    killsTillSpeedup = ceil(killsTillSpeedup/2)
+                    invaderSpeed = invaderSpeed + 5
+                end if
             end if
-            if missile.sprite.y > TOP_BORDER then missile.deployed = false
-            if currentKillCounter >= killsTillSpeedup then
-                currentKillCounter = 0
-                killsTillSpeedup = ceil(killsTillSpeedup/2)
-                invaderSpeed = invaderSpeed + 5
-            end if
+        else if key.pressed("space") and not spaceJustPressed then
+            missile.sprite.x = player.sprite.x
+            missile.sprite.y = player.sprite.y + 4*SCALE
+            missile.deployed = true
+            pew.play
         end if
-    else if key.pressed("space") and not spaceJustPressed then
-        missile.sprite.x = player.sprite.x
-        missile.sprite.y = player.sprite.y + 4*SCALE
-        missile.deployed = true
-        pew.play
-    end if
-
     
-    if enemyMissile.deployed then
-        enemyMissile.sprite.y = enemyMissile.sprite.y - enemyMissile.speed * delta
-        if collideWithBarriers(enemyMissile) or enemyMissile.sprite.y < -2*SCALE then resetEnemyMissile
-        if player.sprite.overlaps(enemyMissile.sprite) then
-            hitSnd.play
-            addExplosion player.sprite.x, player.sprite.y
-            player.sprite.x = LEFT_BORDER
-            extraLives = extraLives - 1
-            resetEnemyMissile
-            if extraLives < 0 then loseGame
+        
+        if enemyMissile.deployed then
+            enemyMissile.sprite.y = enemyMissile.sprite.y - enemyMissile.speed * delta
+            if collideWithBarriers(enemyMissile) or enemyMissile.sprite.y < -2*SCALE then resetEnemyMissile
+            if player.sprite.overlaps(enemyMissile.sprite) then
+                hitSnd.play
+                addExplosion player.sprite.x, player.sprite.y
+                player.sprite.x = LEFT_BORDER
+                extraLives = extraLives - 1
+                resetEnemyMissile
+                if extraLives < 0 then 
+                    gameOver = true
+                end if
+            end if
+        else
+            enemyMissile.shotDelay = enemyMissile.shotDelay - delta
+            if enemyMissile.shotDelay <= 0 then
+                shooter = invaders[floor(rnd*invaders.len)]
+                enemyMissile.sprite.x = shooter.sprite.x
+                enemyMissile.sprite.y = shooter.sprite.y
+                invaderPew.play
+                enemyMissile.deployed = true
+            end if
         end if
-    else
-        enemyMissile.shotDelay = enemyMissile.shotDelay - delta
-        if enemyMissile.shotDelay <= 0 then
-            shooter = invaders[floor(rnd*invaders.len)]
-            enemyMissile.sprite.x = shooter.sprite.x
-            enemyMissile.sprite.y = shooter.sprite.y
-            invaderPew.play
-            enemyMissile.deployed = true
+
+        for invader in invaders   
+            if invader.sprite.y <= BOTTOM_OFFSET + 32*SCALE then
+                gameOver = true
+            end if
+        end for
+    
+        if invaders.len <= 0 then
+            waves = waves + 1
+            startWave
         end if
+    
+        toBeRemoved = null
+        for explosion in explosions
+            explosion.elapsedTime = explosion.elapsedTime + delta
+            explosion.sprite.image = explosionFrames[mathUtil.clamp(
+                floor(explosion.elapsedTime/(explosion.timeToLive/explosionFrames.len)),
+                0,
+                explosionFrames.len-1)]
+            if explosion.elapsedTime >= explosion.timeToLive then
+                toBeRemoved = explosion
+                break
+            end if
+        end for
+    
+        if toBeRemoved then
+            explosions.remove explosions.indexOf(toBeRemoved)
+            display(4).sprites.remove display(4).sprites.indexOf(toBeRemoved.sprite)
+        end if
+
+        if not gameOver then
+            if extraLives >= 2 then extraLive2.tint = color.lime else extraLive2.tint = color.gray
+            if extraLives >= 1 then extraLive1.tint = color.lime else extraLive1.tint = color.gray
+            printScore score
+        end if
+        spaceJustPressed = key.pressed("space")
     end if
-
-    if invaders.len <= 0 then
-        waves = waves + 1
-        startWave
-    end if
-
-    for invader in invaders   
-        if invader.sprite.y <= BOTTOM_OFFSET + 32*SCALE then
-            loseGame
-        end if
-    end for
-
-    toBeRemoved = null
-    for explosion in explosions
-        explosion.elapsedTime = explosion.elapsedTime + delta
-        explosion.sprite.image = explosionFrames[mathUtil.clamp(
-            floor(explosion.elapsedTime/(explosion.timeToLive/explosionFrames.len)),
-            0,
-            explosionFrames.len-1)]
-        if explosion.elapsedTime >= explosion.timeToLive then
-            toBeRemoved = explosion
-            break
-        end if
-    end for
-
-    if toBeRemoved then
-        explosions.remove explosions.indexOf(toBeRemoved)
-        display(4).sprites.remove display(4).sprites.indexOf(toBeRemoved.sprite)
-    end if
-    if extraLives >= 2 then extraLive2.tint = color.lime else extraLive2.tint = color.gray
-    if extraLives >= 1 then extraLive1.tint = color.lime else extraLive1.tint = color.gray
-    printScore score
-    spaceJustPressed = key.pressed("space")
     yield
 end while
 
